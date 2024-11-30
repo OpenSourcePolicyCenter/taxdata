@@ -241,6 +241,8 @@ def split_earnings_variables(data, data_year):
         mte = 106800
     elif data_year == 2011:
         mte = 106800
+    elif data_year == 2015:
+        mte = 118500
     else:
         raise ValueError("illegal SOI PUF data year {}".format(data_year))
     # total self-employment earnings subject to SECA taxation

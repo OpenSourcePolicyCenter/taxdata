@@ -40,15 +40,9 @@ for details.
 """
 
 from __future__ import print_function
-import sys
 import numpy as np
 import pandas as pd
 from pathlib import Path
-
-if sys.version_info[0] < 3:
-    from StringIO import StringIO
-else:
-    from io import StringIO
 
 
 CURPATH = Path(__file__).resolve().parent
@@ -97,7 +91,7 @@ UNDER_WAGE = [
     1e6,
     2e6,
     5e6,
-    30e6,
+    124e6,
 ]
 
 
@@ -125,7 +119,7 @@ def wage_group(row):
     for grp, underwage in enumerate(UNDER_WAGE):
         if row["wage"] < underwage:
             return grp
-    raise ValueError("illegal value of wage")
+    raise ValueError(f"illegal value of wage: {row['wage']}")
 
 
 # end of wage_group() function
@@ -157,11 +151,12 @@ MIN_HIWAGE_GROUP = 11  # SF applied to wage groups no less than this MIN
 # several times each with a different value of HIWAGE_PROB_SF.
 
 
-# specify maximum legal elective deferral amount for DC pensions in 2011
-MAX_PENCON_AMT = 16500
+# specify maximum legal elective deferral amount for DC pensions in each year
+# the PUF is supported
+MAX_PENCON_AMT = {2011: 16500, 2015: 1800}
 
 
-def impute(idata, target_cnt, target_amt):
+def impute(idata, target_cnt, target_amt, year):
     """
     Impute idata[pencon] given other idata variables and targets.
     """
@@ -203,7 +198,7 @@ def impute(idata, target_cnt, target_amt):
             num_iterations = 10
             for itr in range(0, num_iterations):
                 uncapped_amt = np.where(pos_pc, np.round(wage * rate0).astype(int), 0)
-                capped_amt = np.minimum(uncapped_amt, MAX_PENCON_AMT)
+                capped_amt = np.minimum(uncapped_amt, MAX_PENCON_AMT[year])
                 over_amt = uncapped_amt - capped_amt
                 over_tot = (over_amt * wgt).sum() * 1e-9
                 rate1 = min(1.0, (cell_target_amt + over_tot) / wgt_pos_pc_wages)
@@ -299,12 +294,12 @@ def impute_pension_contributions(alldata, year):
     # do two imputations to construct gross wages for PUF records
     idata["wage"] = idata["e00200"]
     idata["wagegrp"] = idata.apply(wage_group, axis=1)
-    impute(idata, target_cnt, target_amt)
+    impute(idata, target_cnt, target_amt, year)
     idata["wage"] = np.where(
         idata["filer"] == 1, idata["e00200"] + idata["pencon"], idata["e00200"]
     )
     idata["wagegrp"] = idata.apply(wage_group, axis=1)  # gross wage group
-    impute(idata, target_cnt, target_amt)
+    impute(idata, target_cnt, target_amt, year)
     if DUMP0:
         cnt = (idata["weight"] * (idata["pencon"] > 0)).sum() * 1e-6
         print("wgt_pencon_cnt(#M)= {:.3f}".format(cnt))

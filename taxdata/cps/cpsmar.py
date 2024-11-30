@@ -162,6 +162,9 @@ def create_cps(
         # person record
         elif rec_type == "3":
             person = parse(record, parsing_dict["person"])
+            # add housing subsidy to person record because it's needed in person_details
+            if year < 2016:
+                person['fhoussub'] = family['fhoussub']
             person = person_details(
                 person,
                 benefits,

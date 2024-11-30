@@ -12,6 +12,7 @@ __pycache__/
 
 # IRS-SOI PUF and related CPS matching data files
 puf*.csv
+demographics*.csv
 *puf.csv
 puf.csv*
 cps-matched-puf.csv

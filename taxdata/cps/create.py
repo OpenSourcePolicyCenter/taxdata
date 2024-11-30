@@ -106,7 +106,7 @@ def create(
     _units = []
     for year in cps_files:
         print(f"Creating Tax Units for {year}")
-        _yr_units = pycps(cps_dfs[year], year, verbose)
+        _yr_units = pycps(cps_dfs[year], year, benefits, verbose)
         if validate:
             validate_cps_units(cps_dfs[year], _yr_units, year)
         _units.append(_yr_units)
